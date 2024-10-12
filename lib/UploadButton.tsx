@@ -22,7 +22,7 @@ export function UploadButton(props: {
   // Called every time the combined upload progresses by at least 10 percent. `progress` % is a multiple of 10.
   onUploadProgress?: (progress: number) => void;
   // Called at the start of each upload.
-  onUploadBegin?: (fileName: string) => void;
+  onUploadBegin?: (file: File) => void;
   // Called when all the files have been uploaded.
   onUploadComplete?: (uploaded: UploadFileResponse[]) => Promise<void> | void;
   // Called if there was an error at any point in the upload process.

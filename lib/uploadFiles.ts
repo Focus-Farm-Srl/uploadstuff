@@ -8,7 +8,7 @@ export type UploadFileResponse = {
 export const uploadFiles = async (args: {
   url: string;
   files: File[];
-  onUploadBegin?: ({ file }: { file: string }) => void;
+  onUploadBegin?: ({ file }: { file: File }) => void;
   onUploadProgress?: ({
     file,
     progress,
@@ -35,7 +35,7 @@ export const uploadFiles = async (args: {
           }),
         () => {
           args.onUploadBegin?.({
-            file: file.name,
+            file: file,
           });
         }
       );

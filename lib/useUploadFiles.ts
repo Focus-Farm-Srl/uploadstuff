@@ -8,7 +8,7 @@ export const useUploadFiles = (
     onUploadComplete?: (res: UploadFileResponse[]) => Promise<void>;
     onUploadProgress?: (p: number) => void;
     onUploadError?: (e: unknown) => void;
-    onUploadBegin?: (fileName: string) => void;
+    onUploadBegin?: (file: File) => void;
   }
 ): {
   startUpload: (files: File[]) => Promise<UploadFileResponse[]>;
