@@ -2,7 +2,7 @@
 
 ## Install
 
-`npm install @xixixao/uploadstuff`
+`npm install @lerealfede/uploadstuff`
 
 ## Docs
 
