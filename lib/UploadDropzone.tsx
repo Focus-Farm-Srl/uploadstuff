@@ -36,6 +36,8 @@ export function UploadDropzone(props: {
   onUploadComplete?: (uploaded: UploadFileResponse[]) => Promise<void> | void;
   // Called if there was an error at any point in the upload process.
   onUploadError?: (error: unknown) => void;
+  // Called before each file upload to determine if it should proceed for uploading.
+  shouldFileUpload?: (file: File) => boolean;
 
   /// Optional appearance props
 
@@ -61,6 +63,7 @@ export function UploadDropzone(props: {
     },
     onUploadError: props.onUploadError,
     onUploadBegin: props.onUploadBegin,
+    shouldFileUpload: props.shouldFileUpload,
   });
 
   const onDrop = useCallback(
