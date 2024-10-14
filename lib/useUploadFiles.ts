@@ -9,7 +9,6 @@ export const useUploadFiles = (
     onUploadProgress?: (p: number) => void;
     onUploadError?: (e: unknown) => void;
     onUploadBegin?: (file: File) => void;
-    shouldFileUpload?: (file: File) => boolean;
   }
 ): {
   startUpload: (files: File[]) => Promise<UploadFileResponse[]>;
@@ -24,11 +23,8 @@ export const useUploadFiles = (
 
     try {
       const url = typeof uploadUrl === "string" ? uploadUrl : await uploadUrl();
-      const filesToUpload = opts?.shouldFileUpload
-      ? files.filter(opts.shouldFileUpload)
-      : files;
       const res = await uploadFiles({
-        files : filesToUpload,
+        files,
         url,
         onUploadProgress: ({ file, progress }) => {
           if (opts?.onUploadProgress == null) {

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { Accept, FileWithPath } from "react-dropzone";
+import type { Accept, FileError, FileWithPath } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
 import { twMerge } from "tailwind-merge";
 import { UploadFileResponse } from ".";
@@ -37,7 +37,7 @@ export function UploadDropzone(props: {
   // Called if there was an error at any point in the upload process.
   onUploadError?: (error: unknown) => void;
   // Called before each file upload to determine if it should proceed for uploading.
-  shouldFileUpload?: (file: File) => boolean;
+  shouldFileUpload?: (file: File) => FileError | null;
 
   /// Optional appearance props
 
@@ -63,11 +63,11 @@ export function UploadDropzone(props: {
     },
     onUploadError: props.onUploadError,
     onUploadBegin: props.onUploadBegin,
-    shouldFileUpload: props.shouldFileUpload,
   });
 
   const onDrop = useCallback(
     (acceptedFiles: FileWithPath[]) => {
+
       setFiles(acceptedFiles);
 
       if (props.uploadImmediately === true) {
@@ -82,6 +82,7 @@ export function UploadDropzone(props: {
     onDrop,
     accept: props.fileTypes,
     disabled: false,
+    validator: props.shouldFileUpload
   });
 
   const onUploadClick = (
