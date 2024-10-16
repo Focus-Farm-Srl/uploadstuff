@@ -39,6 +39,8 @@ export function UploadDropzone(props: {
   // Called before each file upload to determine if it should proceed for uploading.
   shouldFileUpload?: (file: File) => FileError | null;
 
+  onBeforeUpload?: (file: File) => Promise<File | null>;
+
   /// Optional appearance props
 
   // Text, if provided, is shown below the "Choose files" line
@@ -49,6 +51,11 @@ export function UploadDropzone(props: {
   className?: (state: UploadDropzoneState) => string;
 }) {
   const [files, setFiles] = useState<File[]>([]);
+
+  // if we are checking the files on onBeforeUpload
+  const [isChecking, setIsChecking] = useState(false);
+
+  const [shouldUploadImmediately, setShouldUploadImmediately] = useState(props.uploadImmediately ?? false);
 
   const [uploadProgress, setUploadProgress] = useState(0);
   const { startUpload, isUploading } = useUploadFiles(props.uploadUrl, {
@@ -65,18 +72,37 @@ export function UploadDropzone(props: {
     onUploadBegin: props.onUploadBegin,
   });
 
-  const onDrop = useCallback(
-    (acceptedFiles: FileWithPath[]) => {
+  const processFiles = useCallback(async (acceptedFiles : File[]) => {
+    let processedFiles;
+    try {
+        processedFiles = await Promise.all(acceptedFiles.map(async (file) => {
+            const result = await props.onBeforeUpload!(file);
+            return result;
+        }));
+        const filteredFiles = processedFiles.filter((file) => file !== null);
+        setFiles(filteredFiles);
+    } finally {
+      setIsChecking(false);
+    }
+}, [props.onBeforeUpload]);
 
-      setFiles(acceptedFiles);
-
-      if (props.uploadImmediately === true) {
-        void startUpload(acceptedFiles);
-        return;
-      }
-    },
-    [props, startUpload]
-  );
+const onDrop = useCallback(
+  (acceptedFiles: FileWithPath[]) => {
+    setIsChecking(true);
+    if (props.onBeforeUpload){
+      setShouldUploadImmediately(false);
+      processFiles(acceptedFiles);
+      return;
+    }
+    setFiles(acceptedFiles);
+    if (shouldUploadImmediately === true) {
+      void startUpload(acceptedFiles);
+      setIsChecking(false);
+      return;
+    }
+  },
+  [props.onBeforeUpload, processFiles, props.uploadImmediately, startUpload]
+);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -159,7 +185,7 @@ export function UploadDropzone(props: {
               : "bg-blue-600"
           )}
           onClick={onUploadClick}
-          disabled={isUploading}
+          disabled={isUploading || isChecking}
         >
           {isUploading ? (
             <UploadSpinner />

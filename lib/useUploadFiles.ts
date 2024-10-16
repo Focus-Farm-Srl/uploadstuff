@@ -61,6 +61,6 @@ export const useUploadFiles = (
 
   return {
     startUpload,
-    isUploading,
+    isUploading
   };
 };
