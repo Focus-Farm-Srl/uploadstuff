@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { Accept, FileError, FileWithPath } from "react-dropzone";
+import type { Accept, FileError } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
 import { twMerge } from "tailwind-merge";
 import { UploadFileResponse } from ".";
@@ -52,10 +52,6 @@ export function UploadDropzone(props: {
 }) {
   const [files, setFiles] = useState<File[]>([]);
 
-  // if we are checking the files on onBeforeUpload
-  const [isChecking, setIsChecking] = useState(false);
-
-  const [shouldUploadImmediately, setShouldUploadImmediately] = useState(props.uploadImmediately ?? false);
 
   const [uploadProgress, setUploadProgress] = useState(0);
   const { startUpload, isUploading } = useUploadFiles(props.uploadUrl, {
@@ -73,36 +69,36 @@ export function UploadDropzone(props: {
   });
 
   const processFiles = useCallback(async (acceptedFiles : File[]) => {
-    let processedFiles;
-    try {
-        processedFiles = await Promise.all(acceptedFiles.map(async (file) => {
-            const result = await props.onBeforeUpload!(file);
-            return result;
-        }));
-        const filteredFiles = processedFiles.filter((file) => file !== null);
-        setFiles(filteredFiles);
-    } finally {
-      setIsChecking(false);
-    }
+    const processedFiles = await Promise.all(acceptedFiles.map(async (file) => {
+        try {
+            return await props.onBeforeUpload!(file);
+        } catch (error) {
+            console.error('Error processing file:', error);
+            return null;
+        }
+    }));
+    return processedFiles.filter((file) => file !== null);
 }, [props.onBeforeUpload]);
 
-const onDrop = useCallback(
-  (acceptedFiles: FileWithPath[]) => {
-    setIsChecking(true);
-    if (props.onBeforeUpload){
-      setShouldUploadImmediately(false);
-      processFiles(acceptedFiles);
-      return;
-    }
-    setFiles(acceptedFiles);
-    if (shouldUploadImmediately === true) {
-      void startUpload(acceptedFiles);
-      setIsChecking(false);
-      return;
-    }
-  },
-  [props.onBeforeUpload, processFiles, props.uploadImmediately, startUpload]
-);
+const onDrop = useCallback((acceptedFiles : File[]) => {
+    const process = async () => {
+            let filesToUpload;
+            if (props.onBeforeUpload) {
+                filesToUpload = await processFiles(acceptedFiles);
+            } else {
+                filesToUpload = acceptedFiles;
+            }
+            
+            setFiles(filesToUpload);
+
+            if (props.uploadImmediately === true && filesToUpload.length > 0) {
+                await startUpload(filesToUpload);
+            }
+    };
+
+    process();
+
+}, [props.uploadImmediately, props.onBeforeUpload, processFiles, startUpload]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -185,7 +181,7 @@ const onDrop = useCallback(
               : "bg-blue-600"
           )}
           onClick={onUploadClick}
-          disabled={isUploading || isChecking}
+          disabled={isUploading}
         >
           {isUploading ? (
             <UploadSpinner />
