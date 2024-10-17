@@ -24,4 +24,10 @@ Add onBeforeUpload to the UploadDropzone:
 return: null to exclude a file or File that should be update.
 Unlike shouldFileUpload this accept async function and can also modify the file before the upload.
 
+Add uploadLabel to UploadDropzone:
+```
+  uploadLabel?: string;
+```
+default value : "Choose files or drag and drop"
+
 Made for my personal use.

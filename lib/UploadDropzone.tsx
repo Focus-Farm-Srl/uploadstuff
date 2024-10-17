@@ -26,6 +26,8 @@ export function UploadDropzone(props: {
   // Whether the upload should start right after the user drags the file in. Defaults to `false`
   uploadImmediately?: boolean;
 
+  uploadLabel?: string;
+
   /// Optional life-cycle props
 
   // Called every time the combined upload progresses by at least 10 percent. `progress` % is a multiple of 10.
@@ -88,11 +90,10 @@ const onDrop = useCallback((acceptedFiles : File[]) => {
             } else {
                 filesToUpload = acceptedFiles;
             }
-            
-            setFiles(filesToUpload);
+            setFiles(filesToUpload as File[]);
 
             if (props.uploadImmediately === true && filesToUpload.length > 0) {
-                await startUpload(filesToUpload);
+                await startUpload(filesToUpload!);
             }
     };
 
@@ -159,7 +160,7 @@ const onDrop = useCallback((acceptedFiles : File[]) => {
           "text-blue-600"
         )}
       >
-        Choose files or drag and drop
+      {props.uploadLabel || "Choose files or drag and drop"}
         <input className="sr-only" {...getInputProps()} />
       </label>
       {props.subtitle !== undefined ? (
