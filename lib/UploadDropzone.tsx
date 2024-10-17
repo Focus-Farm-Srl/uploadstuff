@@ -93,7 +93,7 @@ const onDrop = useCallback((acceptedFiles : File[]) => {
             setFiles(filesToUpload as File[]);
 
             if (props.uploadImmediately === true && filesToUpload.length > 0) {
-                await startUpload(filesToUpload!);
+                await startUpload(filesToUpload as File[]);
             }
     };
 
