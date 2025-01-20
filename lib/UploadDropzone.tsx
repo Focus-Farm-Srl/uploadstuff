@@ -41,7 +41,7 @@ export function UploadDropzone(props: {
   // Called before each file upload to determine if it should proceed for uploading.
   shouldFileUpload?: (file: File) => FileError | null;
 
-  onBeforeUpload?: (file: File) => Promise<File | null>;
+  onBeforeUpload?: (file: File) => Promise<File | File[] | null>;
 
   /// Optional appearance props
 
@@ -51,9 +51,11 @@ export function UploadDropzone(props: {
   content?: (state: UploadDropzoneState) => string;
   // Replaces the `className` of the dropzone. `progress` % is a multiple of 10 if the upload is in progress or `null`.
   className?: (state: UploadDropzoneState) => string;
+
+  // Add new prop for file change callback
+  onFilesChange?: (files: File[]) => void;
 }) {
   const [files, setFiles] = useState<File[]>([]);
-
 
   const [uploadProgress, setUploadProgress] = useState(0);
   const { startUpload, isUploading } = useUploadFiles(props.uploadUrl, {
@@ -70,42 +72,69 @@ export function UploadDropzone(props: {
     onUploadBegin: props.onUploadBegin,
   });
 
-  const processFiles = useCallback(async (acceptedFiles : File[]) => {
-    const processedFiles = await Promise.all(acceptedFiles.map(async (file) => {
-        try {
-            return await props.onBeforeUpload!(file);
-        } catch (error) {
-            console.error('Error processing file:', error);
+  const processFiles = useCallback(
+    async (acceptedFiles: File[]) => {
+      const processedFiles = await Promise.all(
+        acceptedFiles.map(async (file) => {
+          try {
+            const result = await props.onBeforeUpload!(file);
+            // Handle both single file and array of files
+            return Array.isArray(result) ? result : result;
+          } catch (error) {
+            console.error("Error processing file:", error);
             return null;
+          }
+        })
+      );
+      // Flatten the array and filter out nulls
+      return processedFiles
+        .flat()
+        .filter((file): file is File => file !== null);
+    },
+    [props.onBeforeUpload]
+  );
+
+  // Modify setFiles to notify parent
+  const updateFiles = useCallback(
+    (newFiles: File[]) => {
+      setFiles(newFiles);
+      props.onFilesChange?.(newFiles);
+    },
+    [props.onFilesChange]
+  );
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const process = async () => {
+        let filesToUpload;
+        if (props.onBeforeUpload) {
+          filesToUpload = await processFiles(acceptedFiles);
+        } else {
+          filesToUpload = acceptedFiles;
         }
-    }));
-    return processedFiles.filter((file) => file !== null);
-}, [props.onBeforeUpload]);
+        updateFiles(filesToUpload);
 
-const onDrop = useCallback((acceptedFiles : File[]) => {
-    const process = async () => {
-            let filesToUpload;
-            if (props.onBeforeUpload) {
-                filesToUpload = await processFiles(acceptedFiles);
-            } else {
-                filesToUpload = acceptedFiles;
-            }
-            setFiles(filesToUpload as File[]);
+        if (props.uploadImmediately === true && filesToUpload.length > 0) {
+          await startUpload(filesToUpload);
+        }
+      };
 
-            if (props.uploadImmediately === true && filesToUpload.length > 0) {
-                await startUpload(filesToUpload as File[]);
-            }
-    };
-
-    process();
-
-}, [props.uploadImmediately, props.onBeforeUpload, processFiles, startUpload]);
+      process();
+    },
+    [
+      props.uploadImmediately,
+      props.onBeforeUpload,
+      processFiles,
+      startUpload,
+      updateFiles,
+    ]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: props.fileTypes,
     disabled: false,
-    validator: props.shouldFileUpload
+    validator: props.shouldFileUpload,
   });
 
   const onUploadClick = (
@@ -160,7 +189,7 @@ const onDrop = useCallback((acceptedFiles : File[]) => {
           "text-blue-600"
         )}
       >
-      {props.uploadLabel || "Choose files or drag and drop"}
+        {props.uploadLabel || "Choose files or drag and drop"}
         <input className="sr-only" {...getInputProps()} />
       </label>
       {props.subtitle !== undefined ? (
