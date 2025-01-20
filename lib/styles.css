@@ -150,12 +150,12 @@
 
 .bg-blue-400 {
   --tw-bg-opacity: 1;
-  background-color: rgb(96 165 250 / var(--tw-bg-opacity))
+  background-color: rgb(96 165 250 / var(--tw-bg-opacity, 1))
 }
 
 .bg-blue-600 {
   --tw-bg-opacity: 1;
-  background-color: rgb(37 99 235 / var(--tw-bg-opacity))
+  background-color: rgb(37 99 235 / var(--tw-bg-opacity, 1))
 }
 
 .bg-blue-600\/10 {
@@ -209,22 +209,22 @@
 
 .text-blue-600 {
   --tw-text-opacity: 1;
-  color: rgb(37 99 235 / var(--tw-text-opacity))
+  color: rgb(37 99 235 / var(--tw-text-opacity, 1))
 }
 
 .text-gray-400 {
   --tw-text-opacity: 1;
-  color: rgb(156 163 175 / var(--tw-text-opacity))
+  color: rgb(156 163 175 / var(--tw-text-opacity, 1))
 }
 
 .text-gray-600 {
   --tw-text-opacity: 1;
-  color: rgb(75 85 99 / var(--tw-text-opacity))
+  color: rgb(75 85 99 / var(--tw-text-opacity, 1))
 }
 
 .text-white {
   --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity))
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1))
 }
 
 .filter {
@@ -254,7 +254,7 @@
 .before\:bg-blue-400::before {
   content: var(--tw-content);
   --tw-bg-opacity: 1;
-  background-color: rgb(96 165 250 / var(--tw-bg-opacity))
+  background-color: rgb(96 165 250 / var(--tw-bg-opacity, 1))
 }
 
 .after\:absolute::after {
@@ -335,7 +335,7 @@
 .after\:bg-blue-600::after {
   content: var(--tw-content);
   --tw-bg-opacity: 1;
-  background-color: rgb(37 99 235 / var(--tw-bg-opacity))
+  background-color: rgb(37 99 235 / var(--tw-bg-opacity, 1))
 }
 
 .after\:transition-\[width\]::after {
@@ -363,7 +363,7 @@
 
 .focus-within\:ring-blue-600:focus-within {
   --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(37 99 235 / var(--tw-ring-opacity))
+  --tw-ring-color: rgb(37 99 235 / var(--tw-ring-opacity, 1))
 }
 
 .focus-within\:ring-offset-2:focus-within {
@@ -376,7 +376,7 @@
 
 .hover\:text-blue-500:hover {
   --tw-text-opacity: 1;
-  color: rgb(59 130 246 / var(--tw-text-opacity))
+  color: rgb(59 130 246 / var(--tw-text-opacity, 1))
 }
 
 @media (prefers-color-scheme: dark) {
@@ -386,11 +386,11 @@
 
   .dark\:text-gray-300 {
     --tw-text-opacity: 1;
-    color: rgb(209 213 219 / var(--tw-text-opacity))
+    color: rgb(209 213 219 / var(--tw-text-opacity, 1))
   }
 
   .dark\:text-gray-500 {
     --tw-text-opacity: 1;
-    color: rgb(107 114 128 / var(--tw-text-opacity))
+    color: rgb(107 114 128 / var(--tw-text-opacity, 1))
   }
 }

@@ -41,7 +41,7 @@ export function UploadDropzone(props: {
   // Called before each file upload to determine if it should proceed for uploading.
   shouldFileUpload?: (file: File) => FileError | null;
 
-  onBeforeUpload?: (file: File) => Promise<File | null>;
+  onBeforeUpload?: (file: File) => Promise<File | File[] | null>;
 
   /// Optional appearance props
 
@@ -51,6 +51,9 @@ export function UploadDropzone(props: {
   content?: (state: UploadDropzoneState) => string;
   // Replaces the `className` of the dropzone. `progress` % is a multiple of 10 if the upload is in progress or `null`.
   className?: (state: UploadDropzoneState) => string;
+
+  // Add new prop for file change callback
+  onFilesChange?: (files: File[]) => void;
 }) {
   const [files, setFiles] = useState<File[]>([]);
 
@@ -74,16 +77,30 @@ export function UploadDropzone(props: {
       const processedFiles = await Promise.all(
         acceptedFiles.map(async (file) => {
           try {
-            return await props.onBeforeUpload!(file);
+            const result = await props.onBeforeUpload!(file);
+            // Handle both single file and array of files
+            return Array.isArray(result) ? result : result;
           } catch (error) {
             console.error("Error processing file:", error);
             return null;
           }
         })
       );
-      return processedFiles.filter((file) => file !== null);
+      // Flatten the array and filter out nulls
+      return processedFiles
+        .flat()
+        .filter((file): file is File => file !== null);
     },
     [props.onBeforeUpload]
+  );
+
+  // Modify setFiles to notify parent
+  const updateFiles = useCallback(
+    (newFiles: File[]) => {
+      setFiles(newFiles);
+      props.onFilesChange?.(newFiles);
+    },
+    [props.onFilesChange]
   );
 
   const onDrop = useCallback(
@@ -95,16 +112,22 @@ export function UploadDropzone(props: {
         } else {
           filesToUpload = acceptedFiles;
         }
-        setFiles(filesToUpload as File[]);
+        updateFiles(filesToUpload);
 
         if (props.uploadImmediately === true && filesToUpload.length > 0) {
-          await startUpload(filesToUpload as File[]);
+          await startUpload(filesToUpload);
         }
       };
 
       process();
     },
-    [props.uploadImmediately, props.onBeforeUpload, processFiles, startUpload]
+    [
+      props.uploadImmediately,
+      props.onBeforeUpload,
+      processFiles,
+      startUpload,
+      updateFiles,
+    ]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

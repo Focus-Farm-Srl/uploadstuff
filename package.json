@@ -1,10 +1,10 @@
 {
   "name": "@lerealfede/uploadstuff",
-  "version": "0.1.2",
-"authors": [
-  "xixixao",
-  "lerealfede"
-],
+  "version": "0.1.5",
+  "authors": [
+    "xixixao",
+    "lerealfede"
+  ],
   "license": "MIT",
   "repository": "https://github.com/FedericoAbrignani/uploadstuff",
   "module": "lib/index.ts",
