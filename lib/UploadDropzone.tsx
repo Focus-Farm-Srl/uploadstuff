@@ -54,7 +54,6 @@ export function UploadDropzone(props: {
 }) {
   const [files, setFiles] = useState<File[]>([]);
 
-
   const [uploadProgress, setUploadProgress] = useState(0);
   const { startUpload, isUploading } = useUploadFiles(props.uploadUrl, {
     onUploadComplete: async (res) => {
@@ -70,42 +69,49 @@ export function UploadDropzone(props: {
     onUploadBegin: props.onUploadBegin,
   });
 
-  const processFiles = useCallback(async (acceptedFiles : File[]) => {
-    const processedFiles = await Promise.all(acceptedFiles.map(async (file) => {
-        try {
+  const processFiles = useCallback(
+    async (acceptedFiles: File[]) => {
+      const processedFiles = await Promise.all(
+        acceptedFiles.map(async (file) => {
+          try {
             return await props.onBeforeUpload!(file);
-        } catch (error) {
-            console.error('Error processing file:', error);
+          } catch (error) {
+            console.error("Error processing file:", error);
             return null;
+          }
+        })
+      );
+      return processedFiles.filter((file) => file !== null);
+    },
+    [props.onBeforeUpload]
+  );
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const process = async () => {
+        let filesToUpload;
+        if (props.onBeforeUpload) {
+          filesToUpload = await processFiles(acceptedFiles);
+        } else {
+          filesToUpload = acceptedFiles;
         }
-    }));
-    return processedFiles.filter((file) => file !== null);
-}, [props.onBeforeUpload]);
+        setFiles(filesToUpload as File[]);
 
-const onDrop = useCallback((acceptedFiles : File[]) => {
-    const process = async () => {
-            let filesToUpload;
-            if (props.onBeforeUpload) {
-                filesToUpload = await processFiles(acceptedFiles);
-            } else {
-                filesToUpload = acceptedFiles;
-            }
-            setFiles(filesToUpload as File[]);
+        if (props.uploadImmediately === true && filesToUpload.length > 0) {
+          await startUpload(filesToUpload as File[]);
+        }
+      };
 
-            if (props.uploadImmediately === true && filesToUpload.length > 0) {
-                await startUpload(filesToUpload as File[]);
-            }
-    };
-
-    process();
-
-}, [props.uploadImmediately, props.onBeforeUpload, processFiles, startUpload]);
+      process();
+    },
+    [props.uploadImmediately, props.onBeforeUpload, processFiles, startUpload]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: props.fileTypes,
     disabled: false,
-    validator: props.shouldFileUpload
+    validator: props.shouldFileUpload,
   });
 
   const onUploadClick = (
@@ -160,7 +166,7 @@ const onDrop = useCallback((acceptedFiles : File[]) => {
           "text-blue-600"
         )}
       >
-      {props.uploadLabel || "Choose files or drag and drop"}
+        {props.uploadLabel || "Choose files or drag and drop"}
         <input className="sr-only" {...getInputProps()} />
       </label>
       {props.subtitle !== undefined ? (
