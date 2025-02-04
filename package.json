@@ -1,6 +1,6 @@
 {
   "name": "@lerealfede/uploadstuff",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "authors": [
     "xixixao",
     "lerealfede"
@@ -36,16 +36,17 @@
     "build": "npm run build-css && tsc --outDir esm -t esnext --noEmit false --allowImportingTsExtensions false --composite false --jsx react-jsx && tsc --outDir cjs -t es6 --sourceMap --noEmit false --allowImportingTsExtensions false --composite false -m commonjs --moduleResolution node --jsx react-jsx && echo '{\"type\": \"commonjs\"}' > cjs/package.json"
   },
   "dependencies": {
+    "lucide-react": "^0.474.0",
     "tailwind-merge": "^1.14.0"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0",
     "react": "^18.2.0",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.2.3",
+    "typescript": "^5.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.21",
-    "tailwindcss": "^3.3.3",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.2.3",
+    "tailwindcss": "^3.3.3"
   }
 }
