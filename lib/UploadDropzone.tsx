@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import type { Accept, FileError } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
 import { twMerge } from "tailwind-merge";
-import { UploadFileResponse } from ".";
+import { UploadFileResponse } from "./uploadFiles";
 import { useUploadFiles } from "./useUploadFiles";
 import { UploadSpinner } from "./UploadSpinner";
 
@@ -55,6 +55,7 @@ export function UploadDropzone(props: {
   // Add new prop for file change callback
   onFilesChange?: (files: File[]) => void;
 }) {
+  const { uploadImmediately, onBeforeUpload, onFilesChange } = props;
   const [files, setFiles] = useState<File[]>([]);
 
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -77,7 +78,7 @@ export function UploadDropzone(props: {
       const processedFiles = await Promise.all(
         acceptedFiles.map(async (file) => {
           try {
-            const result = await props.onBeforeUpload!(file);
+            const result = await onBeforeUpload!(file);
             // Handle both single file and array of files
             return Array.isArray(result) ? result : result;
           } catch (error) {
@@ -91,43 +92,37 @@ export function UploadDropzone(props: {
         .flat()
         .filter((file): file is File => file !== null);
     },
-    [props.onBeforeUpload]
+    [onBeforeUpload]
   );
 
   // Modify setFiles to notify parent
   const updateFiles = useCallback(
     (newFiles: File[]) => {
       setFiles(newFiles);
-      props.onFilesChange?.(newFiles);
+      onFilesChange?.(newFiles);
     },
-    [props.onFilesChange]
+    [onFilesChange]
   );
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       const process = async () => {
         let filesToUpload;
-        if (props.onBeforeUpload) {
+        if (onBeforeUpload) {
           filesToUpload = await processFiles(acceptedFiles);
         } else {
           filesToUpload = acceptedFiles;
         }
         updateFiles(filesToUpload);
 
-        if (props.uploadImmediately === true && filesToUpload.length > 0) {
+        if (uploadImmediately === true && filesToUpload.length > 0) {
           await startUpload(filesToUpload);
         }
       };
 
       process();
     },
-    [
-      props.uploadImmediately,
-      props.onBeforeUpload,
-      processFiles,
-      startUpload,
-      updateFiles,
-    ]
+    [uploadImmediately, onBeforeUpload, processFiles, startUpload, updateFiles]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -159,67 +154,64 @@ export function UploadDropzone(props: {
       className={
         props.className?.(combinedState) ??
         twMerge(
-          "flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-900/25 dark:border-gray-200/25 px-6 py-10 text-center",
-          isDragActive && "bg-blue-600/10",
+          "flex flex-col items-center justify-center rounded-lg",
+          "border-2 border-dashed border-input bg-background px-6 py-10",
+          "transition-colors duration-200 ease-in-out",
+          isDragActive && "border-primary bg-primary/5",
           files.length === 0 && "py-[4.25rem]"
         )
       }
       {...getRootProps()}
     >
       {props.content?.(combinedState) ?? (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          className={twMerge(
-            "mx-auto block h-12 w-12 align-middle text-gray-400 dark:text-gray-300"
-          )}
-        >
-          <path
+        <div className="text-muted-foreground">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            className="mx-auto h-12 w-12"
             fill="currentColor"
-            fillRule="evenodd"
-            d="M5.5 17a4.5 4.5 0 0 1-1.44-8.765a4.5 4.5 0 0 1 8.302-3.046a3.5 3.5 0 0 1 4.504 4.272A4 4 0 0 1 15 17H5.5Zm3.75-2.75a.75.75 0 0 0 1.5 0V9.66l1.95 2.1a.75.75 0 1 0 1.1-1.02l-3.25-3.5a.75.75 0 0 0-1.1 0l-3.25 3.5a.75.75 0 1 0 1.1 1.02l1.95-2.1v4.59Z"
-            clipRule="evenodd"
-          ></path>
-        </svg>
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.5 17a4.5 4.5 0 0 1-1.44-8.765a4.5 4.5 0 0 1 8.302-3.046a3.5 3.5 0 0 1 4.504 4.272A4 4 0 0 1 15 17H5.5Zm3.75-2.75a.75.75 0 0 0 1.5 0V9.66l1.95 2.1a.75.75 0 1 0 1.1-1.02l-3.25-3.5a.75.75 0 0 0-1.1 0l-3.25 3.5a.75.75 0 1 0 1.1 1.02l1.95-2.1v4.59Z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
       )}
       <label
         htmlFor="file-upload"
-        className={twMerge(
-          "relative mt-4 flex w-64 cursor-pointer items-center justify-center text-sm font-semibold leading-6 text-gray-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 hover:text-blue-500",
-          "text-blue-600"
-        )}
+        className="mt-4 text-sm font-medium text-primary hover:text-primary/80 cursor-pointer"
       >
         {props.uploadLabel || "Choose files or drag and drop"}
         <input className="sr-only" {...getInputProps()} />
       </label>
-      {props.subtitle !== undefined ? (
-        <div
-          className={twMerge(
-            "m-0 h-[1.25rem] text-xs leading-5 text-gray-600 dark:text-gray-500"
-          )}
-        >
-          {props.subtitle}
-        </div>
-      ) : null}
-      {files.length > 0 ? (
+      {props.subtitle && (
+        <p className="mt-1 text-sm text-muted-foreground">{props.subtitle}</p>
+      )}
+      {files.length > 0 && (
         <button
           className={twMerge(
-            "relative mt-4 flex h-10 w-36 items-center justify-center overflow-hidden rounded-md text-white after:transition-[width] after:duration-500",
+            "relative mt-4 flex h-10 w-36 items-center justify-center",
+            "rounded-md text-primary-foreground transition-all duration-200",
+            "overflow-hidden after:transition-[width] after:duration-500",
             isUploading
-              ? `before:absolute before:-z-20 before:w-full before:h-full before:bg-blue-400 ` +
-                  `bg-blue-400 after:absolute after:-z-10 after:left-0 after:h-full after:bg-blue-600 ${progressWidths[uploadProgress]}`
-              : "bg-blue-600"
+              ? `before:absolute before:-z-20 before:w-full before:h-full before:bg-muted ` +
+                  `after:absolute after:-z-10 after:left-0 after:h-full after:bg-primary ${progressWidths[uploadProgress]}`
+              : "bg-primary hover:bg-primary/90"
           )}
           onClick={onUploadClick}
           disabled={isUploading}
         >
-          {isUploading ? (
-            <UploadSpinner />
-          ) : (
-            `Upload ${files.length} file${files.length === 1 ? "" : "s"}`
-          )}
+          <span className="relative z-10">
+            {isUploading ? (
+              <UploadSpinner />
+            ) : (
+              `Upload ${files.length} file${files.length === 1 ? "" : "s"}`
+            )}
+          </span>
         </button>
-      ) : null}
+      )}
     </div>
   );
 }

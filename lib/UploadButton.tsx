@@ -60,13 +60,14 @@ export function UploadButton(props: {
       className={
         props.className?.(combinedState) ??
         twMerge(
-          "relative flex h-10 w-36 cursor-pointer items-center justify-center " +
-            "overflow-hidden rounded-md text-white after:transition-[width] after:duration-500 " +
-            "hover:bg-blue-600/90",
+          "relative flex h-10 w-36 cursor-pointer items-center justify-center",
+          "rounded-md text-primary-foreground transition-colors",
+          "overflow-hidden after:transition-[width] after:duration-500",
+          "hover:bg-primary/90",
           isUploading &&
-            `before:absolute before:-z-20 before:w-full before:h-full before:bg-blue-400 ` +
-              ` after:absolute after:-z-10 after:left-0 after:h-full after:bg-blue-600 ${progressWidths[uploadProgress]}`,
-          !isUploading && "bg-blue-600"
+            `before:absolute before:-z-20 before:w-full before:h-full before:bg-muted ` +
+              `after:absolute after:-z-10 after:left-0 after:h-full after:bg-primary ${progressWidths[uploadProgress]}`,
+          !isUploading && "bg-primary"
         )
       }
     >
@@ -77,20 +78,22 @@ export function UploadButton(props: {
         multiple={props.multiple}
         accept={(props.fileTypes ?? [])?.join(", ")}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          if (!event.target.files) {
-            return;
-          }
+          if (!event.target.files) return;
           const files = Array.from(event.target.files);
           void startUpload(files);
         }}
         disabled={isUploading}
       />
-      {props.content?.(combinedState) ??
-        (isUploading ? (
-          <UploadSpinner />
-        ) : (
-          `Choose File${props.multiple ? `(s)` : ``}`
-        ))}
+      <span className="relative z-10">
+        {props.content?.(combinedState) ??
+          (isUploading ? (
+            <UploadSpinner />
+          ) : (
+            <span className="flex items-center gap-2">
+              {`Choose File${props.multiple ? `s` : ``}`}
+            </span>
+          ))}
+      </span>
     </label>
   );
 }
@@ -107,4 +110,5 @@ const progressWidths: Record<number, string> = {
   80: "after:w-[80%]",
   90: "after:w-[90%]",
   100: "after:w-[100%]",
+};
 };
