@@ -1,7 +1,6 @@
 // Ripped from https://github.com/scottrippey/react-use-event-hook
 import { useInsertionEffect, useLayoutEffect, useRef } from "react";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFunction = (...args: any[]) => any;
 const noop = () => void 0;
 
@@ -26,7 +25,6 @@ export function useEvent<TCallback extends AnyFunction>(
 ): TCallback {
   // Keep track of the latest callback:
   const latestRef = useRef<TCallback>(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
     useEvent_shouldNotBeInvokedBeforeMount as any
   );
   useInsertionEffect_(() => {
@@ -38,7 +36,6 @@ export function useEvent<TCallback extends AnyFunction>(
   const stableRef = useRef<TCallback | undefined>(undefined);
   if (!stableRef.current) {
     stableRef.current = function (this: unknown) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, prefer-rest-params, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
       return latestRef.current.apply(this, arguments as any);
     } as TCallback;
   }
