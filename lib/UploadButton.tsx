@@ -111,4 +111,3 @@ const progressWidths: Record<number, string> = {
   90: "after:w-[90%]",
   100: "after:w-[100%]",
 };
-};
